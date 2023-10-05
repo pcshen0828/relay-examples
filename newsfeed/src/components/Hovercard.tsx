@@ -31,6 +31,7 @@ export default function Hovercard({
     };
     target.addEventListener("mouseenter", enterCallback);
     target.addEventListener("mouseleave", leaveCallback);
+
     return () => {
       target.removeEventListener("mouseenter", enterCallback);
       target.removeEventListener("mouseleave", leaveCallback);
