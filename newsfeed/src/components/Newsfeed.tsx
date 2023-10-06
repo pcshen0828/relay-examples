@@ -8,21 +8,38 @@ import type { NewsfeedQuery as NewsfeedQueryType } from "./__generated__/Newsfee
 
 const NewsfeedQuery = graphql`
   query NewsfeedQuery {
-    topStories {
-      id
-      ...StoryFragment
+    ...NewsfeedContentsFragments
+  }
+`;
+
+const NewsfeedContentsFragment = graphql`
+  fragment NewsfeedContentsFragment on Query
+  @argumentDefinitions(
+    cursor: { type: "String" }
+    count: { type: "Int", defaultValue: 3 }
+  )
+  @refetchable(queryName: "NewsfeedContentsRefetchQuery") {
+    viewer {
+      newsfeedStories(after: $cursor, first: $count)
+        @connection(key: "NewsfeedContentsFragment_newsfeedStories") {
+        edges {
+          node {
+            id
+            ...StoryFragment
+          }
+        }
+      }
     }
   }
 `;
 
 export default function Newsfeed() {
   const data = useLazyLoadQuery<NewsfeedQueryType>(NewsfeedQuery, {});
-  const stories = data.topStories;
 
   return (
     <div className="newsfeed">
-      {stories.map((story) => (
-        <Story key={story.id} story={story} />
+      {data.viewer.newsfeedStories.edges.map((edge) => (
+        <Story key={edge.node.id} story={edge.node} />
       ))}
     </div>
   );

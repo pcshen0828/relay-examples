@@ -32,6 +32,8 @@ export default function PosterByline({ poster }: Props): React.ReactElement {
   const data = useFragment(PosterBylineFragment, poster);
   const hoverRef = useRef(null);
 
+  // the query ref is an opaque piece of information that usePreloadedQuery will use to retrieve the result of the query.
+  // loadHovercardQuery is a function that will initiate the request.
   const [hovercardQueryRef, loadHovercardQuery] =
     useQueryLoader<HovercardQueryType>(PosterDetailsHovercardContentsQuery);
 

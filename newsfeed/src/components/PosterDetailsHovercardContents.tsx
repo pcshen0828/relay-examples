@@ -11,7 +11,10 @@ import Timestamp from "./Timestamp";
 
 import type { PosterDetailsHovercardContentsQuery as QueryType } from "./__generated__/PosterDetailsHovercardContentsQuery.graphql";
 import type { PosterDetailsHovercardContentsBodyFragment$key } from "./__generated__/PosterDetailsHovercardContentsBodyFragment.graphql";
+import OrganizationKind from "./OrganizationKind";
 
+// The node field is a top-level field defined in our schema that lets us fetch any graph node given its unique ID
+// .. on Actor is a type refinement
 export const PosterDetailsHovercardContentsQuery = graphql`
   query PosterDetailsHovercardContentsQuery($posterID: ID!) {
     node(id: $posterID) {
@@ -22,12 +25,16 @@ export const PosterDetailsHovercardContentsQuery = graphql`
   }
 `;
 
+// With preloaded queries, the variables are actually determined when the query is fetched,
+// which will be before this component is even rendered.
+// So instead of variables, this hook takes a query reference that contains the information it needs to retrieve the results of the query
 export default function PosterDetailsHovercardContents({
   queryRef,
 }: {
   queryRef: PreloadedQuery<QueryType>;
 }): React.ReactElement {
   const data = usePreloadedQuery(PosterDetailsHovercardContentsQuery, queryRef);
+
   return (
     <div className="posterHovercard">
       <PosterDetailsHovercardContentsBody poster={data.node} />
@@ -42,6 +49,14 @@ const PosterDetailsHovercardContentsBodyFragment = graphql`
     joined
     profilePicture {
       ...ImageFragment
+    }
+    ... on Organization {
+      organizationKind
+    }
+    ... on Person {
+      location {
+        name
+      }
     }
   }
 `;
@@ -65,6 +80,12 @@ function PosterDetailsHovercardContentsBody({
         <li>
           Joined <Timestamp time={data.joined} />
         </li>
+        {data.location != null && <li>{data.location.name}</li>}
+        {data.organizationKind != null && (
+          <li>
+            <OrganizationKind kind={data.organizationKind} />
+          </li>
+        )}
       </ul>
       <div className="posterHovercard__buttons">
         <button>Friend</button>
