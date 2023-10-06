@@ -2,13 +2,15 @@ import * as React from "react";
 import Story from "./Story";
 
 import { graphql } from "relay-runtime";
-import { useLazyLoadQuery } from "react-relay";
+import { useLazyLoadQuery, usePaginationFragment } from "react-relay";
 
 import type { NewsfeedQuery as NewsfeedQueryType } from "./__generated__/NewsfeedQuery.graphql";
+import { NewsfeedContentsFragment$key } from "./__generated__/NewsfeedContentsFragment.graphql";
+import InfiniteScrollTrigger from "./InfiniteScrollTrigger";
 
 const NewsfeedQuery = graphql`
   query NewsfeedQuery {
-    ...NewsfeedContentsFragments
+    ...NewsfeedContentsFragment
   }
 `;
 
@@ -38,9 +40,34 @@ export default function Newsfeed() {
 
   return (
     <div className="newsfeed">
-      {data.viewer.newsfeedStories.edges.map((edge) => (
-        <Story key={edge.node.id} story={edge.node} />
-      ))}
+      <NewsfeedContents viewer={data} />
     </div>
+  );
+}
+
+function NewsfeedContents({
+  viewer,
+}: {
+  viewer: NewsfeedContentsFragment$key;
+}) {
+  const { data, loadNext, hasNext, isLoadingNext } = usePaginationFragment(
+    NewsfeedContentsFragment,
+    viewer
+  );
+  function onEndReached() {
+    loadNext(3);
+  }
+  const storyEdges = data.viewer.newsfeedStories.edges;
+  return (
+    <>
+      {storyEdges.map((storyEdge) => (
+        <Story key={storyEdge.node.id} story={storyEdge.node} />
+      ))}
+      <InfiniteScrollTrigger
+        onEndReached={onEndReached}
+        hasNext={hasNext}
+        isLoadingNext={isLoadingNext}
+      />
+    </>
   );
 }
